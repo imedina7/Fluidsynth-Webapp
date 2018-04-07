@@ -22,6 +22,7 @@ function getChannels(){
 }
 
 function getInstruments(){
+//	$(document).bind('pageinit', function (){
 	var params = self.location.hash.slice(1).split('&');
 	
 	for (var i=0; i < params.length; i++) {
@@ -36,7 +37,7 @@ function getInstruments(){
 
 	var fontId = listFont;
 
-	socket.emit('queryFont', fontId);
+	socket.emit('queryFonts');
 
 	socket.on('instrumentdump', function(idmp){
 
@@ -63,6 +64,7 @@ function getInstruments(){
 		$("#instruments").listview("refresh");
 		$.mobile.loading( 'hide');
 	});
+//});
 }
 $(document).on('vclick', '#instruments li a', function(){
 	var ipath = $(this).attr('data-inum');

@@ -23,7 +23,7 @@ var tparams = {
 };
 
 
-function changeinst(channel,inst,fontId, bank) {
+function changeinst(channel,fontId, bank,inst) {
     var flcmd = 'select '+channel+' '+ fontId + ' ' + bank + ' ' + inst;
     console.log("fluidsynth: ", flcmd);
     tconnect.send(flcmd, function(err, response) {
@@ -61,9 +61,31 @@ function getvoices(client) {
     voices = setTimeout(getvoices, config.STATUS_UPDATE_INTERVAL);
   });
 }
-function dumpInstruments(font,client){
-  tconnect.send('inst '+font, function(err, ins) {
-    client.emit('instrumentdump', { package: ins });
+function dumpInstruments(client){
+  tconnect.send('fonts', function(err, fontList){
+    var fontList = fontList.splice(1, fontList.length - 2);
+    fontList.reverse();
+    for (i = 0; i < fontList.length; i++) {
+	    var item = fontList[i];
+	    var fontName = item.slice(item.lastIndexOf('/') + 1, item.lastIndexOf('.'));
+	    fontList[i] = { fontId: i, fontName: fontName };
+    }
+    var fontNumber = fontList.length;
+    var instrumentPackage = [];
+    console.log(fontNumber);
+    tconnect.send('inst 1', function(err, _ins) {
+	    var ins = _ins.split('\n');
+	    for (i=0;i < ins.length - 1; i++) {
+			console.log(ins[i].slice(4));
+			var instrumentBank = ins[i].slice(0,3);
+			var instrumentnumber = ins[i].slice(4,7);
+			var instrumentname = ins[i].slice(8);
+		    	instrumentPackage.push({ bank: instrumentBank,
+						 program: instrumentnumber,
+						 name: instrumentname
+					       });
+		}
+    });
   });
 }
 io.on('connection', function(client) {
@@ -71,16 +93,13 @@ io.on('connection', function(client) {
     telnetConnect();
 
     tconnect.on('error', function () {
-      console.error("Fluidsynth Telnet: connection failed, retrying in "+ (config.FLUIDSYNTH_RETRY / 1000) +" seconds...");
+      console.error("Fluidsynth Telnet: connection failed, retrying in "+ 
+	      (config.FLUIDSYNTH_RETRY / 1000) +" seconds...");
       connectRetry = setTimeout(telnetConnect, config.FLUIDSYNTH_RETRY);
     });
 
-    client.on('queryFont',function(font){
-
-      if (isNumeric(font)){
-        dumpInstruments(font,client);
-      }
-
+    client.on('queryFonts',function(){
+        dumpInstruments(client);
     });
 
     client.on('changeinst', function(data) {
@@ -92,7 +111,7 @@ io.on('connection', function(client) {
 
       if ( isNumeric(channel) && isNumeric(inst) ) {
 
-        changeinst(channel,inst,fontId,bankId);
+        changeinst(channel,fontId,bankId,inst);
       } 
     });
     client.on('getinstruments', function(){
