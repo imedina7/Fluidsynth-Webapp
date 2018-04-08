@@ -39,17 +39,9 @@ function getInstruments(){
 
 	socket.emit('queryFonts');
 
-	socket.on('instrumentdump', function(idmp){
-
+	socket.on('instrumentdump', function(instrumentPackage){
 		$('#instruments').html("");
-		var str = idmp.package;
-		var array = ["coso1", "coso2", "coso3"];
-		var instruments = str.split("\n");
 		for (i=0;i < instruments.length - 1; i++) {
-			console.log(instruments[i].slice(4));
-			var instrumentBank = instruments[i].slice(0,3);
-			var instrumentnumber = instruments[i].slice(4,7);
-			var instrumentname = instruments[i].slice(8);
 			$('#instruments').append(
 				'<li data-icon="audio"><a href="#" data-inum="' 
 				+ instrumentnumber 
