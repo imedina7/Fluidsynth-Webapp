@@ -61,6 +61,38 @@ function getvoices(client) {
     voices = setTimeout(getvoices, config.STATUS_UPDATE_INTERVAL);
   });
 }
+function gatherAndSendData(fontList,client) {
+	var fontNumber = fontList.length;
+	var font_index = 0;
+  function collectFonts(font){
+    var command = 'inst '+ (font + 1);
+    console.log("sending '"+command+"' command to fluidsynth");
+		tconnect.send(command, function(err, _ins) {
+			font_index = font;
+			var ins = _ins.split('\n');
+
+			for (i=0;i < ins.length - 1; i++) {
+				var instrumentBank = ins[i].slice(0,3);
+				var instrumentnumber = ins[i].slice(4,7);
+				var instrumentname = ins[i].slice(8);
+
+			  fontList[font].instruments.push({ 
+					bank_number: instrumentBank,
+					program_number: instrumentnumber,
+					program_name: instrumentname.trim()
+				});
+			}
+			font_index++;
+			if (font_index < fontNumber)
+				collectFonts(font_index);
+			else {
+				console.log("Sending data to client...");
+				client.emit('instrumentdump',fontList);
+			}
+		});
+	}
+	collectFonts(0);
+}
 function dumpInstruments(client){
 
   tconnect.send('fonts', function(err, fontDump){
@@ -74,26 +106,7 @@ function dumpInstruments(client){
 	    var fontName = item.slice(item.lastIndexOf('/') + 1, item.lastIndexOf('.'));
 	    fontList[i] = { fontId: (i + 1), fontName: fontName, instruments: [] };
     }
-
-    var fontNumber = fontList.length;
-    fontList.forEach(function (item) {
-    var instrumentPackage = [];
-
-    tconnect.send('inst '+item.fontId, function(err, _ins) {
-      var ins = _ins.split('\n');
-      for (i=0;i < ins.length - 1; i++) {
-	var instrumentBank = ins[i].slice(0,3);
-	var instrumentnumber = ins[i].slice(4,7);
-	var instrumentname = ins[i].slice(8);
-    	instrumentPackage.push({ bank: instrumentBank,
-				 program: instrumentnumber,
-				 name: instrumentname.trim()
-			       });
-        item.instruments = instrumentPackage;
-      }
-    });
-   });
-   setTimeout(function () { client.emit('instrumentdump',fontList); },20000);
+		gatherAndSendData(fontList,client);
   });
 }
 io.on('connection', function(client) {

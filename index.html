@@ -9,24 +9,24 @@
   <meta name="author" content="lucidbeaming">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/css/jqm.css" type="text/css" />
-  <script src="/js/jq.js"></script>
-  <script src="/js/jqm.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
 </head>
 
 <body>
 
 <div data-role="page" data-theme="b">
 
-	<div data-role="header" data-position="fixed">
-		<h1>[ fluid ]</h1>
-    </div>
-	</div>
-
-	<ul id="instruments" data-role="listview" data-inset="true">
-
-	</ul>
+  <div data-role="header" data-position="fixed">
+    <h1>[ fluid ]</h1>
+  </div>
+  <div data-role="tabs" id="tabs">
+    <div data-role="navbar" id="navbar">
+	<ul data-inset="true"><li></li></ul>
+    </div>
+  </div>
 </div>
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="/js/app.js"></script>
 </body>
 </html>
